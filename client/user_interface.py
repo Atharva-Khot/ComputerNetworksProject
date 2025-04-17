@@ -3,26 +3,29 @@ class UserInterface:
         print(message)
         return input("Username: ").strip()
 
+    def display_lobby(self, msg):
+        print(f"[Lobby] {msg}")
+
     def display_notification(self, msg):
         print(f"[Notification] {msg}")
 
     def prompt_question(self, msg):
-        print(f"\nQuestion: {msg['question']}")
+        print(f"\nQuestion {msg['number']}: {msg['question']}")
         for opt in msg['options']:
             print(f"- {opt}")
-        return input("Your answer: ").strip()
+        return input("Your answer: ")
 
     def display_result(self, msg):
-        print(f"\nCorrect answer: {msg['correct']}")
+        print(f"\nResult Q{msg['number']}: Correct answer: {msg['correct']}")
         print("Scores:")
-        for user, score in msg['scores'].items():
-            print(f"{user}: {score}")
+        for u, s in msg['scores'].items():
+            print(f"{u}: {s}")
 
     def display_game_over(self, msg):
         print("\nGame Over!")
         print("Final Scores:")
-        for user, score in msg['scores'].items():
-            print(f"{user}: {score}")
+        for u, s in msg['scores'].items():
+            print(f"{u}: {s}")
         print(f"Winner: {msg['winner']}")
 
     def display_error(self, msg):

@@ -1,6 +1,9 @@
 class Scoreboard:
     def __init__(self):
         self.scores = {}
+    
+    def reset(self):
+        self.scores.clear()
 
     def get_scores(self):
         return self.scores

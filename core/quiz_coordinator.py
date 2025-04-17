@@ -7,51 +7,79 @@ class QuizCoordinator:
         self.scores = scores              # dict: username -> int
         self.questions = questions        # list of question dicts
         self.broadcast = broadcast        # function to send to all
+        self.started = False
+        self.lock = threading.Lock()
+
+    def start(self):
+        """Start the quiz exactly once."""
+        with self.lock:
+            if self.started:
+                return
+            self.started = True
+        print("[Server] Quiz starting with players:", list(self.clients.keys()))
+        threading.Thread(target=self.run_quiz, daemon=True).start()
 
     def run_quiz(self):
-        for q in self.questions:
-            # Broadcast question
+        for idx, q in enumerate(self.questions, start=1):
+            # 1) Broadcast the question
+            print(f"[Server] Broadcasting Q{idx}: {q['question']}")
             self.broadcast({
                 "type": MESSAGE_TYPES["question"],
+                "number": idx,
                 "question": q["question"],
                 "options": q["options"]
             })
 
-            # Collect answers
+            # 2) Spin up one thread per client to collect answers in parallel
             answers = {}
-            for username, sock in list(self.clients.items()):
+            threads = []
+
+            def collect_answer(username, sock):
                 buffer = ""
                 try:
                     while True:
-                        data = sock.recv(1024).decode()
-                        if not data:
+                        chunk = sock.recv(1024).decode()
+                        if not chunk:
                             break
-                        buffer += data
+                        buffer += chunk
                         for msg, buffer in decode_stream(buffer):
                             if msg.get("type") == MESSAGE_TYPES["answer"]:
-                                answers[username] = msg.get("answer")
-                                raise StopIteration
-                except StopIteration:
-                    pass
-                except Exception:
-                    continue
+                                answers[username] = msg["answer"]
+                                print(f"[Server] Got {username} → {msg['answer']}")
+                                return
+                except Exception as e:
+                    print(f"[Server] Error collecting from {username}: {e}")
 
-            # Evaluate and broadcast results
+            for user, sock in list(self.clients.items()):
+                t = threading.Thread(target=collect_answer, args=(user, sock), daemon=True)
+                t.start()
+                threads.append(t)
+
+            # 3) Wait for all to finish
+            for t in threads:
+                t.join()
+
+            # 4) Score & broadcast results
             correct = q["answer"]
+            print(f"[Server] Correct for Q{idx}: {correct}")
+
             result_msg = {
                 "type": MESSAGE_TYPES["result"],
+                "number": idx,
                 "correct": correct,
                 "scores": {}
             }
-            for username, ans in answers.items():
+            for user, ans in answers.items():
                 if ans.strip().lower() == correct.strip().lower():
-                    self.scores[username] = self.scores.get(username, 0) + 1
-                result_msg["scores"][username] = self.scores.get(username, 0)
+                    self.scores[user] = self.scores.get(user, 0) + 1
+                result_msg["scores"][user] = self.scores.get(user, 0)
 
+            print(f"[Server] Broadcasting results Q{idx}: {result_msg['scores']}")
             self.broadcast(result_msg)
 
-        # Game over
-        winner = max(self.scores, key=self.scores.get)
+        # 5) Finally, game over
+        winner = max(self.scores, key=self.scores.get) if self.scores else None
+        print(f"[Server] Game over. Winner: {winner}")
         self.broadcast({
             "type": MESSAGE_TYPES["game_over"],
             "winner": winner,

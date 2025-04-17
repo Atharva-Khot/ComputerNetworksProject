@@ -1,31 +1,49 @@
+import threading
 from networking.server_connection import ServerConnection
 from core.scoreboard import Scoreboard
 from core.quiz_coordinator import QuizCoordinator
 from server.client_handler import ClientHandler
+from utils.utils import load_questions, MESSAGE_TYPES, encode_message
 
 # Shared state
 def main():
     server_conn = ServerConnection()
-    clients = {}      # username -> socket
+    lobby = {}        # username -> socket
+    active = {}
     scoreboard = Scoreboard()
-    questions = __import__('utils.utils', fromlist=['load_questions']).load_questions()
+    questions = load_questions()
+    coordinator = None
 
-    def broadcast(msg):
-        from utils.utils import encode_message
+    def broadcast_to_active(msg):
         data = encode_message(msg)
         with server_conn.lock:
-            for sock in clients.values():
+            for sock in active.values():
                 try:
                     sock.send(data)
                 except:
                     pass
 
-    coordinator = QuizCoordinator(clients, scoreboard.get_scores(), questions, broadcast)
+    # Admin console for starting quizzes
+    def admin_console():
+        nonlocal coordinator, active, lobby, scoreboard
+        while True:
+            cmd = input("[Server] Type 'start' to begin quiz: ")
+            if cmd.strip().lower() == 'start' and lobby:
+                # Move all lobby to active
+                active = lobby.copy()
+                lobby.clear()
+                scoreboard.reset()
+                coordinator = QuizCoordinator(active, scoreboard.get_scores(), questions, broadcast_to_active)
+                coordinator.start()
+            else:
+                print("[Server] No players in lobby or invalid command")
 
-    print(f"Server listening on {server_conn.socket.getsockname()}")
+    threading.Thread(target=admin_console, daemon=True).start()
+
+    print(f"[Server] Listening on {server_conn.socket.getsockname()}")
     while True:
         conn, addr = server_conn.accept_client()
-        handler = ClientHandler(conn, addr, clients, scoreboard.get_scores(), broadcast, coordinator)
+        handler = ClientHandler(conn, addr, lobby, active, broadcast_to_active)
         handler.start()
 
 if __name__ == "__main__":

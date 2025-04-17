@@ -5,6 +5,7 @@ DELIMITER = "\n"
 MESSAGE_TYPES = {
     "welcome": "welcome",
     "username": "username",
+    "lobby": "lobby",
     "notification": "notification",
     "question": "question",
     "answer": "answer",
