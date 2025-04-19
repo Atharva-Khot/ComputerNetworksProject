@@ -1,69 +1,84 @@
 import threading
+import socket
 from utils.utils import decode_stream, encode_message, MESSAGE_TYPES
 
 class QuizCoordinator:
-    def __init__(self, clients, scores, questions, broadcast):
-        self.clients = clients            # dict: username -> socket
-        self.scores = scores              # dict: username -> int
-        self.questions = questions        # list of question dicts
-        self.broadcast = broadcast        # function to send to all
+    def __init__(self, clients, scores, questions, broadcast, timeout, on_quiz_end=None):
+        self.clients = clients
+        self.scores = scores
+        self.questions = questions
+        self.broadcast = broadcast
+        self.timeout = timeout            # seconds
+        self.on_quiz_end   = on_quiz_end
         self.started = False
+        self.stopped = False
         self.lock = threading.Lock()
 
     def start(self):
-        """Start the quiz exactly once."""
         with self.lock:
             if self.started:
                 return
             self.started = True
-        print("[Server] Quiz starting with players:", list(self.clients.keys()))
+        print(f"[Server] Starting quiz for: {list(self.clients.keys())}")
         threading.Thread(target=self.run_quiz, daemon=True).start()
+
+    def stop(self):
+        """Signal the quiz to end early."""
+        print("[Server] Stopping quiz early.")
+        self.stopped = True
 
     def run_quiz(self):
         for idx, q in enumerate(self.questions, start=1):
-            # 1) Broadcast the question
-            print(f"[Server] Broadcasting Q{idx}: {q['question']}")
+            if self.stopped:
+                break
+
+            print(f"[Server] Q{idx}: {q['question']}")
             self.broadcast({
                 "type": MESSAGE_TYPES["question"],
                 "number": idx,
                 "question": q["question"],
-                "options": q["options"]
+                "options": q["options"],
+                "timeout": self.timeout
             })
 
-            # 2) Spin up one thread per client to collect answers in parallel
             answers = {}
             threads = []
 
-            def collect_answer(username, sock):
-                buffer = ""
+            def collect(user, sock):
+                sock.settimeout(self.timeout)
+                buf = ""
                 try:
                     while True:
                         chunk = sock.recv(1024).decode()
-                        if not chunk:
-                            break
-                        buffer += chunk
-                        for msg, buffer in decode_stream(buffer):
+                        if not chunk or self.stopped:
+                            return
+                        buf += chunk
+                        for msg, buf in decode_stream(buf):
                             if msg.get("type") == MESSAGE_TYPES["answer"]:
-                                answers[username] = msg["answer"]
-                                print(f"[Server] Got {username} → {msg['answer']}")
+                                answers[user] = msg["answer"]
+                                print(f"[Server] Answer from {user}: {msg['answer']}")
                                 return
+                except socket.timeout:
+                    print(f"[Server] Time up for {user}: no answer received.")
                 except Exception as e:
-                    print(f"[Server] Error collecting from {username}: {e}")
+                    print(f"[Server] Error recv from {user}: {e}")
+                finally:
+                    sock.settimeout(None)  # restore blocking mode
 
             for user, sock in list(self.clients.items()):
-                t = threading.Thread(target=collect_answer, args=(user, sock), daemon=True)
+                t = threading.Thread(target=collect, args=(user, sock), daemon=True)
                 t.start()
                 threads.append(t)
 
-            # 3) Wait for all to finish
             for t in threads:
                 t.join()
 
-            # 4) Score & broadcast results
-            correct = q["answer"]
-            print(f"[Server] Correct for Q{idx}: {correct}")
+            if self.stopped:
+                break
 
-            result_msg = {
+            correct = q["answer"]
+            print(f"[Server] Correct Q{idx}: {correct}")
+            result = {
                 "type": MESSAGE_TYPES["result"],
                 "number": idx,
                 "correct": correct,
@@ -72,12 +87,12 @@ class QuizCoordinator:
             for user, ans in answers.items():
                 if ans.strip().lower() == correct.strip().lower():
                     self.scores[user] = self.scores.get(user, 0) + 1
-                result_msg["scores"][user] = self.scores.get(user, 0)
+                result["scores"][user] = self.scores.get(user, 0)
 
-            print(f"[Server] Broadcasting results Q{idx}: {result_msg['scores']}")
-            self.broadcast(result_msg)
+            print(f"[Server] Results Q{idx}: {result['scores']}")
+            self.broadcast(result)
 
-        # 5) Finally, game over
+        # Final game‐over broadcast
         winner = max(self.scores, key=self.scores.get) if self.scores else None
         print(f"[Server] Game over. Winner: {winner}")
         self.broadcast({
@@ -85,3 +100,21 @@ class QuizCoordinator:
             "winner": winner,
             "scores": self.scores
         })
+        for user, sock in self.clients.items():
+            try:
+                sock.send(encode_message({
+                    "type": MESSAGE_TYPES["notification"],
+                    "message": "Quiz has ended. You are back in the lobby."
+                }))
+                sock.send(encode_message({
+                    "type": MESSAGE_TYPES["lobby"],
+                    "message": "Waiting for the next quiz to start..."
+                }))
+            except:
+                pass
+            if self.on_quiz_end:
+                self.on_quiz_end()
+        # reset started/stopped so admin can start a new quiz
+        with self.lock:
+            self.started = False
+            self.stopped = False

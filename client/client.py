@@ -20,8 +20,8 @@ def main():
             buffer += data
             for msg, buffer in decode_stream(buffer):
                 handler.handle(msg)
-                if msg.get("type") == MESSAGE_TYPES["game_over"]:
-                    return
+                # if msg.get("type") == MESSAGE_TYPES["game_over"]:
+                #     return
     except Exception as e:
         print(f"Connection closed: {e}")
     finally:
