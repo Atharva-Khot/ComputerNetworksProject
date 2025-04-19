@@ -1,4 +1,4 @@
-import threading
+import threading, sys
 import time
 from utils.utils import MESSAGE_TYPES
 
@@ -57,27 +57,45 @@ class MessageHandler:
 
             # 1) Ticker thread
             def ticker():
-                for remaining in range(timeout, 0, -1):
+                for i in range(timeout, 0, -1):
                     if stop_event.is_set():
                         return
-                    print(f"\rTime remaining: {remaining:2d}s", end="", flush=True)
+                    # Move up and overwrite the countdown line
+                    sys.stdout.write(f"\033[F\rCountdown: {i:2d} seconds remaining\n")
+                    sys.stdout.flush()
                     time.sleep(1)
-                print("\rTime's up!                    ")
-
-            # 2) Reader thread
-            def reader():
-                answer[0] = input("\nYour answer: ")
+                sys.stdout.write("\033[F\rTime's up!                     \n")
+                sys.stdout.flush()
                 stop_event.set()
 
+            def reader():
+                print(" ", end='', flush=True)
+                answer[0] = input()
+                stop_event.set()
+
+            # Print the two lines first
+            print("Countdown: -- seconds remaining")
+            print("input: ", end='', flush=True)
+
+            # Start threads
             t_tick = threading.Thread(target=ticker, daemon=True)
             t_read = threading.Thread(target=reader, daemon=True)
 
             t_tick.start()
             t_read.start()
 
-            # Wait for either the reader or the timeout
             t_read.join(timeout)
-            stop_event.set()     # signal ticker to stop (if it's still running)
+            stop_event.set()
+
+            # t_tick = threading.Thread(target=ticker, daemon=True)
+            # t_read = threading.Thread(target=reader, daemon=True)
+
+            # t_tick.start()
+            # t_read.start()
+
+            # # Wait for either the reader or the timeout
+            # t_read.join(timeout)
+            # stop_event.set()     # signal ticker to stop (if it's still running)
 
             # If reader is still alive, it means timeout hit first
             if t_read.is_alive():

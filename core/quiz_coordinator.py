@@ -100,7 +100,7 @@ class QuizCoordinator:
             "winner": winner,
             "scores": self.scores
         })
-        for user, sock in self.clients.items():
+        for user, sock in list(self.clients.items()):
             try:
                 sock.send(encode_message({
                     "type": MESSAGE_TYPES["notification"],
