@@ -1,7 +1,12 @@
 class UserInterface:
-    def prompt_username(self, message):
-        print(message)
-        return input("Username: ").strip()
+    def prompt_username(self, message): 
+        print(message) 
+        while True: 
+            username = input("Username: ").strip() 
+            if username: 
+                return username 
+            else: 
+                print("[Client] Username cannot be blank. Please enter a valid username.")
 
     def display_lobby(self, msg):
         print(f"[Lobby] {msg}")

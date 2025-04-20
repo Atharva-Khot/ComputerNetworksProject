@@ -1,5 +1,7 @@
 import threading
 import socket
+import time
+import random
 from utils.utils import decode_stream, encode_message, MESSAGE_TYPES
 
 class QuizCoordinator:
@@ -8,11 +10,13 @@ class QuizCoordinator:
         self.scores = scores
         self.questions = questions
         self.broadcast = broadcast
-        self.timeout = timeout            # seconds
-        self.on_quiz_end   = on_quiz_end
+        self.timeout = timeout
+        self.on_quiz_end = on_quiz_end
         self.started = False
         self.stopped = False
         self.lock = threading.Lock()
+        self.answer_timestamps = {}  # user -> last correct answer timestamp
+        self.numQuestions = 10
 
     def start(self):
         with self.lock:
@@ -23,12 +27,13 @@ class QuizCoordinator:
         threading.Thread(target=self.run_quiz, daemon=True).start()
 
     def stop(self):
-        """Signal the quiz to end early."""
         print("[Server] Stopping quiz early.")
         self.stopped = True
 
     def run_quiz(self):
-        for idx, q in enumerate(self.questions, start=1):
+        all_questions = self.questions 
+        selected_questions = random.sample(all_questions, self.numQuestions)
+        for idx, q in enumerate(selected_questions, start=1):
             if self.stopped:
                 break
 
@@ -55,15 +60,17 @@ class QuizCoordinator:
                         buf += chunk
                         for msg, buf in decode_stream(buf):
                             if msg.get("type") == MESSAGE_TYPES["answer"]:
-                                answers[user] = msg["answer"]
-                                print(f"[Server] Answer from {user}: {msg['answer']}")
+                                ans = msg.get("answer", "").strip()
+                                ts = msg.get("timestamp", time.time())
+                                answers[user] = {"answer": ans, "timestamp": ts}
+                                print(f"[Server] Answer from {user}: {ans} at {ts}")
                                 return
                 except socket.timeout:
                     print(f"[Server] Time up for {user}: no answer received.")
                 except Exception as e:
                     print(f"[Server] Error recv from {user}: {e}")
                 finally:
-                    sock.settimeout(None)  # restore blocking mode
+                    sock.settimeout(None)
 
             for user, sock in list(self.clients.items()):
                 t = threading.Thread(target=collect, args=(user, sock), daemon=True)
@@ -84,22 +91,36 @@ class QuizCoordinator:
                 "correct": correct,
                 "scores": {}
             }
-            for user, ans in answers.items():
-                if ans.strip().lower() == correct.strip().lower():
+
+            for user, record in answers.items():
+                ans = record["answer"]
+                ts = record["timestamp"]
+                if ans.lower() == correct.lower():
                     self.scores[user] = self.scores.get(user, 0) + 1
-                result["scores"][user] = self.scores.get(user, 0)
+                    self.answer_timestamps[user] = ts
+                else:
+                    self.scores[user] = self.scores.get(user, 0) - 0.5
+                result["scores"][user] = self.scores[user]
 
             print(f"[Server] Results Q{idx}: {result['scores']}")
             self.broadcast(result)
 
-        # Final game‐over broadcast
-        winner = max(self.scores, key=self.scores.get) if self.scores else None
+        # Determine winner with tie-breaking
+        winner = None
+        if self.scores:
+            sorted_players = sorted(
+                self.scores.items(),
+                key=lambda item: (-item[1], self.answer_timestamps.get(item[0], float("inf")))
+            )
+            winner = sorted_players[0][0]
         print(f"[Server] Game over. Winner: {winner}")
+
         self.broadcast({
             "type": MESSAGE_TYPES["game_over"],
             "winner": winner,
             "scores": self.scores
         })
+
         for user, sock in list(self.clients.items()):
             try:
                 sock.send(encode_message({
@@ -112,9 +133,10 @@ class QuizCoordinator:
                 }))
             except:
                 pass
-            if self.on_quiz_end:
-                self.on_quiz_end()
-        # reset started/stopped so admin can start a new quiz
+
+        if self.on_quiz_end:
+            self.on_quiz_end()
+
         with self.lock:
             self.started = False
             self.stopped = False

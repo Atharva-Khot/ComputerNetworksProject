@@ -75,7 +75,7 @@ class MessageHandler:
 
             # Print the two lines first
             print("Countdown: -- seconds remaining")
-            print("input: ", end='', flush=True)
+            print(" ", end='', flush=True)
 
             # Start threads
             t_tick = threading.Thread(target=ticker, daemon=True)
@@ -100,6 +100,14 @@ class MessageHandler:
             # If reader is still alive, it means timeout hit first
             if t_read.is_alive():
                 print("\n[Client] No answer submitted.")
-                self.send({ "type": MESSAGE_TYPES["answer"], "answer": "" })
+                self.send({ 
+                    "type": MESSAGE_TYPES["answer"], 
+                    "answer": "",
+                    "timestamp" : time.time() 
+                })
             else:
-                self.send({ "type": MESSAGE_TYPES["answer"], "answer": answer[0] })
+                self.send({ 
+                    "type": MESSAGE_TYPES["answer"], 
+                    "answer": answer[0],
+                    "timestamp" : time.time()
+                })

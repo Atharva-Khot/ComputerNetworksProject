@@ -1,12 +1,202 @@
 [
-    {
-      "question": "What is the capital of France?",
-      "options": ["Berlin", "Madrid", "Paris", "Rome"],
-      "answer": "Paris"
-    },
-    {
-      "question": "Which planet is known as the Red Planet?",
-      "options": ["Earth", "Mars", "Jupiter", "Saturn"],
-      "answer": "Mars"
-    }
-  ]
+  {
+    "question": "What does CPU stand for?",
+    "options": ["A) Central Process Unit", "B) Computer Personal Unit", "C) Central Processing Unit", "D) Central Peripheral Unit"],
+    "answer": "C"
+  },
+  {
+    "question": "Which of the following is not an input device?",
+    "options": ["A) Keyboard", "B) Mouse", "C) Monitor", "D) Scanner"],
+    "answer": "C"
+  },
+  {
+    "question": "What is the brain of the computer?",
+    "options": ["A) RAM", "B) CPU", "C) Hard Drive", "D) Monitor"],
+    "answer": "B"
+  },
+  {
+    "question": "Which language is primarily used for web development?",
+    "options": ["A) Python", "B) C++", "C) Java", "D) HTML"],
+    "answer": "D"
+  },
+  {
+    "question": "Which of these is an operating system?",
+    "options": ["A) Google", "B) Linux", "C) Firefox", "D) Intel"],
+    "answer": "B"
+  },
+  {
+    "question": "What does RAM stand for?",
+    "options": ["A) Read Access Memory", "B) Random Access Memory", "C) Rapid Access Module", "D) Run And Manage"],
+    "answer": "B"
+  },
+  {
+    "question": "Which storage is permanent?",
+    "options": ["A) RAM", "B) ROM", "C) Cache", "D) Registers"],
+    "answer": "B"
+  },
+  {
+    "question": "What is the full form of URL?",
+    "options": ["A) Uniform Resource Locator", "B) Unique Resource Location", "C) Universal Request Locator", "D) Uniform Resource Link"],
+    "answer": "A"
+  },
+  {
+    "question": "Which of the following is a search engine?",
+    "options": ["A) Google", "B) Microsoft Word", "C) Facebook", "D) Amazon"],
+    "answer": "A"
+  },
+  {
+    "question": "What does HTTP stand for?",
+    "options": ["A) HyperText Transfer Protocol", "B) Hyperlink Transfer Text Protocol", "C) Hyper Tool Transfer Page", "D) High Transfer Text Protocol"],
+    "answer": "A"
+  },
+  {
+    "question": "What is the boiling point of water in Celsius?",
+    "options": ["A) 90°C", "B) 100°C", "C) 120°C", "D) 80°C"],
+    "answer": "B"
+  },
+  {
+    "question": "Which part of the plant conducts photosynthesis?",
+    "options": ["A) Roots", "B) Stem", "C) Leaves", "D) Flowers"],
+    "answer": "C"
+  },
+  {
+    "question": "Which of the following is a mammal?",
+    "options": ["A) Crocodile", "B) Shark", "C) Dolphin", "D) Penguin"],
+    "answer": "C"
+  },
+  {
+    "question": "What is the chemical symbol for water?",
+    "options": ["A) H2O", "B) CO2", "C) O2", "D) H2SO4"],
+    "answer": "A"
+  },
+  {
+    "question": "What vitamin do we get from sunlight?",
+    "options": ["A) Vitamin A", "B) Vitamin B", "C) Vitamin C", "D) Vitamin D"],
+    "answer": "D"
+  },
+  {
+    "question": "Which organ purifies our blood?",
+    "options": ["A) Heart", "B) Liver", "C) Kidney", "D) Lungs"],
+    "answer": "C"
+  },
+  {
+    "question": "What planet is closest to the Sun?",
+    "options": ["A) Mercury", "B) Mars", "C) Earth", "D) Venus"],
+    "answer": "A"
+  },
+  {
+    "question": "Which gas is most abundant in Earth's atmosphere?",
+    "options": ["A) Oxygen", "B) Hydrogen", "C) Nitrogen", "D) Carbon Dioxide"],
+    "answer": "C"
+  },
+  {
+    "question": "What type of energy is stored in a battery?",
+    "options": ["A) Thermal", "B) Chemical", "C) Kinetic", "D) Nuclear"],
+    "answer": "B"
+  },
+  {
+    "question": "What is the largest organ in the human body?",
+    "options": ["A) Liver", "B) Skin", "C) Heart", "D) Lungs"],
+    "answer": "B"
+  },
+  {
+    "question": "What is the value of π (pi) up to two decimal places?",
+    "options": ["A) 3.12", "B) 3.14", "C) 3.16", "D) 3.18"],
+    "answer": "B"
+  },
+  {
+    "question": "What is 12 × 8?",
+    "options": ["A) 96", "B) 88", "C) 108", "D) 100"],
+    "answer": "A"
+  },
+  {
+    "question": "What is the square root of 144?",
+    "options": ["A) 10", "B) 11", "C) 12", "D) 13"],
+    "answer": "C"
+  },
+  {
+    "question": "What is the value of 2³?",
+    "options": ["A) 6", "B) 8", "C) 4", "D) 10"],
+    "answer": "B"
+  },
+  {
+    "question": "What is the result of 15 - 7?",
+    "options": ["A) 9", "B) 8", "C) 7", "D) 6"],
+    "answer": "B"
+  },
+  {
+    "question": "Which of the following is a prime number?",
+    "options": ["A) 4", "B) 6", "C) 9", "D) 7"],
+    "answer": "D"
+  },
+  {
+    "question": "What is 100 divided by 4?",
+    "options": ["A) 20", "B) 25", "C) 30", "D) 35"],
+    "answer": "B"
+  },
+  {
+    "question": "What is the area of a rectangle with length 5 and width 3?",
+    "options": ["A) 15", "B) 8", "C) 10", "D) 12"],
+    "answer": "A"
+  },
+  {
+    "question": "What is 5% of 200?",
+    "options": ["A) 20", "B) 5", "C) 10", "D) 15"],
+    "answer": "C"
+  },
+  {
+    "question": "What is 2 + 2 × 2?",
+    "options": ["A) 6", "B) 8", "C) 4", "D) 10"],
+    "answer": "A"
+  },
+  {
+    "question": "Who was the first President of the United States?",
+    "options": ["A) George Washington", "B) Abraham Lincoln", "C) John Adams", "D) Thomas Jefferson"],
+    "answer": "A"
+  },
+  {
+    "question": "In which year did World War II end?",
+    "options": ["A) 1944", "B) 1945", "C) 1946", "D) 1947"],
+    "answer": "B"
+  },
+  {
+    "question": "Which ancient civilization built the Pyramids?",
+    "options": ["A) Romans", "B) Greeks", "C) Egyptians", "D) Mayans"],
+    "answer": "C"
+  },
+  {
+    "question": "Who discovered America in 1492?",
+    "options": ["A) Ferdinand Magellan", "B) Christopher Columbus", "C) Marco Polo", "D) Vasco da Gama"],
+    "answer": "B"
+  },
+  {
+    "question": "The Great Wall of China was built to protect against which group?",
+    "options": ["A) Mongols", "B) Japanese", "C) Persians", "D) Huns"],
+    "answer": "A"
+  },
+  {
+    "question": "Who was known as the 'Iron Lady'?",
+    "options": ["A) Indira Gandhi", "B) Angela Merkel", "C) Margaret Thatcher", "D) Elizabeth II"],
+    "answer": "C"
+  },
+  {
+    "question": "Who was the leader of Nazi Germany?",
+    "options": ["A) Joseph Stalin", "B) Winston Churchill", "C) Adolf Hitler", "D) Benito Mussolini"],
+    "answer": "C"
+  },
+  {
+    "question": "Which empire was ruled by Julius Caesar?",
+    "options": ["A) Persian Empire", "B) Roman Empire", "C) Greek Empire", "D) Ottoman Empire"],
+    "answer": "B"
+  },
+  {
+    "question": "Which country gifted the Statue of Liberty to the USA?",
+    "options": ["A) England", "B) Canada", "C) France", "D) Germany"],
+    "answer": "C"
+  },
+  {
+    "question": "Who was the father of Indian independence?",
+    "options": ["A) Jawaharlal Nehru", "B) Sardar Patel", "C) Mahatma Gandhi", "D) Subhas Chandra Bose"],
+    "answer": "C"
+  }
+]
